@@ -1,0 +1,8 @@
+# Step 1: Use the official AWS Lambda Python image as our base
+FROM public.ecr.aws/lambda/python:3.11
+
+# Step 2: Copy our Python file into the container
+COPY app.py ${LAMBDA_TASK_ROOT}
+
+# Step 3: Tell the container where to find our code when it starts
+CMD [ "app.handler" ]
