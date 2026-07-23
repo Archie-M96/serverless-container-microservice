@@ -1,34 +1,22 @@
 # High-Availability Serverless Container Microservice
 
-## Business Case
-Traditional Lambda deployments are limited by a 250MB unzipped package size, which becomes 
-a real constraint once you need larger dependencies (ML libraries, complex SDKs, custom binaries). 
-Enterprises increasingly package Lambda functions as container images (via ECR) instead of zip 
-uploads specifically to escape this limit while keeping the operational simplicity of serverless — 
-no servers to patch, scale, or manage. This project proves that container-based Lambda deployment 
-pattern end-to-end.
+## Why I Built This
+Every other Lambda project in this portfolio uses zip-file deployment. I wanted to prove I 
+understood the alternative: packaging Lambda as a container image via ECR. That's what teams 
+reach for once dependencies exceed the 250MB unzipped limit, or when local dev needs to exactly 
+match production.
 
-## Architecture
-- **Containerization:** Python backend packaged in a Docker image using the AWS base Lambda image, 
-  ensuring the exact runtime environment is version-locked and reproducible.
-- **Registry:** Image pushed to Amazon ECR (Elastic Container Registry).
-- **Compute:** AWS Lambda configured to pull its runtime directly from the ECR image rather than a 
-  zip artifact.
-- **Exposure:** Fronted by API Gateway for secure, throttled HTTP access.
+## What I Built
+- **Containerization:** Python 3.12 backend packaged in a Docker image built from AWS's official 
+  `public.ecr.aws/lambda/python` base image, version-locking the runtime.
+- **Registry:** Pushed to a private Amazon ECR repository.
+- **Compute:** Lambda configured with package type `Image`, pointing directly at the ECR image 
+  URI instead of a zip artifact.
+- **Exposure:** API Gateway REST API with Lambda proxy integration, so the function receives the 
+  full request object (headers, query params, body).
 
-## Why Container Images Over Zip Packaging
-- Removes the 250MB unzipped deployment size ceiling.
-- Enables consistent local-to-cloud testing — the same image that runs in Lambda can be run and 
-  debugged locally via Docker.
-- Better dependency isolation, since the full OS-level environment is defined in the Dockerfile 
-  rather than assembled at deploy time.
-
-## Current Scope & Next Steps
-This is a v1 proof of the deployment pattern. Planned next:
-- Add a health-check endpoint and basic structured logging.
-- Wire up a GitHub Actions pipeline to auto-build and push the image to ECR on merge (extending the 
-  same DevSecOps pattern used in the compliance monitor project).
-- Add Checkov/container image scanning (e.g., Trivy) to catch vulnerable base image layers before push.
-<img width="1350" height="645" alt="AWS - Microservice Success Test" src="https://github.com/user-attachments/assets/008f1a0a-e11b-4b68-8c38-1d256dd22b42" />
-# serverless-container-microservice
-High-availability Python backend packaged in a Docker container and deployed via AWS ECR and Lambda.
+## What I'd Do Next
+This proves the pattern works, but it's not hardened yet. Next: a `/health` route for liveness 
+checking, a GitHub Actions workflow to auto-build and push the image to ECR on merge (same CI/CD 
+pattern as my compliance monitor), and Trivy scanning against the base image layers before every 
+push, so a known-CVE base image can't silently ship.
